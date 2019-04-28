@@ -1,0 +1,27 @@
+{
+    "name": "sb15/php-curl-client",
+    "type": "library",
+    "description": "Php curl client",
+    "keywords": ["browser"],
+    "homepage": "https://github.com/sb15/php-curl-client",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alexander Perov",
+            "email": "alex@sb6.ru"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Sb\\": "src"
+        }
+    },
+    "require": {
+        "php": "^7.2",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit" : "^7.0"
+    }
+}
