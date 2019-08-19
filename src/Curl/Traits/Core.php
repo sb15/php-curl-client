@@ -78,13 +78,13 @@ trait Core
         }
 
         $response = curl_exec($ch);
+        $curlInfo = curl_getinfo($ch);
 
         if ($this->debug) {
 
             rewind($verbose);
             $trace = '';
 
-            $curlInfo = curl_getinfo($ch);
             $curlInfoPretty = json_encode($curlInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             $curlInfoPretty = str_replace(['}', '{', '    '], ['', '', '* '], $curlInfoPretty);
             $curlInfoPretty = trim($curlInfoPretty);
@@ -102,6 +102,7 @@ trait Core
         curl_close($ch);
 
         $this->responseCode = $httpCode;
+        $this->responseInfo = $curlInfo;
 
         if ($error) {
             throw new ClientException('Connection error to '. $url . ' Return code: ' . $httpCode . ' Message: ' . $error);

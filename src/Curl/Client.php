@@ -26,6 +26,7 @@ class Client
 
     private $responseCode;
     private $responseHeaders = [];
+    private $responseInfo = [];
 
     private $debug = false;
     private $trace;

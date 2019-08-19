@@ -120,6 +120,11 @@ trait Main
         return $this->responseCode;
     }
 
+    public function getResponseInfo(): array
+    {
+        return $this->responseInfo;
+    }
+
     public function getResponseHeader($name): ?string
     {
         foreach ($this->responseHeaders as $responseHeaderName => $responseHeaderValue) {
