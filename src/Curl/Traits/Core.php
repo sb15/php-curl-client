@@ -77,6 +77,10 @@ trait Core
             curl_setopt($ch, CURLOPT_PROXY, $this->proxy);
         }
 
+        if ($this->compressRequest) {
+            curl_setopt($ch, CURLOPT_ENCODING , $this->encoding);
+        }
+
         $response = curl_exec($ch);
         $curlInfo = curl_getinfo($ch);
 

@@ -24,6 +24,11 @@ class Client
     private $timeout = 60;
     private $proxy;
 
+    /** @var bool */
+    private $compressRequest = false;
+    /** @var string */
+    private $encoding = "identity,deflate,gzip";
+
     private $responseCode;
     private $responseHeaders = [];
     private $responseInfo = [];

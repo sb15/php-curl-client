@@ -136,6 +136,37 @@ trait Main
         return null;
     }
 
+    /**
+     * @param bool $compressRequest
+     */
+    public function setCompressRequest(bool $compressRequest)
+    {
+        $this->compressRequest = $compressRequest;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getCompressRequest(): bool
+    {
+        return $this->compressRequest;
+    }
+
+    /**
+     * @param string $encoding
+     */
+    public function setEncoding(string $encoding)
+    {
+        $this->encoding = $encoding;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEncoding(): string
+    {
+        return $this->encoding;
+    }
 
     /* debug */
 
