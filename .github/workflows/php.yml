@@ -13,7 +13,7 @@ jobs:
 
     - name: Setup PHP
       uses: shivammathur/setup-php@v1
-        with:
+      with:
         php-version: '7.2'                
         coverage: xdebug
         tools: php-cs-fixer, phpunit
