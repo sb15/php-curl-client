@@ -2,7 +2,7 @@ PHP cUrl client
 ===============
 
 [![Latest Version](https://img.shields.io/github/v/release/sb15/php-curl-client.svg)](https://github.com/sb15/php-curl-client/releases)
-[![Build Status](https://github.com/sb15/php-curl-client/workflows/Main%20workflow/badge.svg)](https://github.com/sb15/php-curl-client/actions?query=workflow%3AMain%20workflow)
+[![Build Status](https://github.com/sb15/php-curl-client/workflows/Main%20workflow/badge.svg)](https://github.com/sb15/php-curl-client/actions?query=workflow%3A%22Main+workflow%22)
 [![Total Downloads](https://img.shields.io/packagist/dt/sb15/php-curl-client.svg)](https://packagist.org/packages/sb15/php-curl-client)
 [![License](https://img.shields.io/github/license/sb15/php-curl-client)](https://github.com/sb15/php-curl-client/LICENSE)
 ![PHP Versions Supported](https://img.shields.io/packagist/php-v/sb15/php-curl-client/v1.0.0)
