@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Sb\Curl;
 
+use Sb\Curl\Exception\Exception as ClientException;
+
 class Client extends ClientCore
 {
 
@@ -32,7 +34,7 @@ class Client extends ClientCore
      * @param string $cookiesJar
      * @return Client
      */
-    public function setCookiesJar(string  $cookiesJar): self
+    public function setCookiesJar(string $cookiesJar): self
     {
         $this->cookiesJar = $cookiesJar;
 
@@ -98,7 +100,7 @@ class Client extends ClientCore
      * Default http proxy
      * For socks 5 use prefix socks5://
      *
-     * @param $proxy
+     * @param string $proxy
      * @return $this
      */
     public function setProxy(string $proxy): self
@@ -119,11 +121,11 @@ class Client extends ClientCore
     }
 
     /**
-     * @param $name
-     * @param $value
+     * @param string $name
+     * @param string $value
      * @return Client
      */
-    public function setHeader($name, $value): self
+    public function setHeader(string $name, string $value): self
     {
         $this->headers[$name] = $value;
 
@@ -131,7 +133,7 @@ class Client extends ClientCore
     }
 
     /**
-     * @return array
+     * @return array<string, string>
      */
     public function getHeaders(): array
     {
@@ -139,33 +141,33 @@ class Client extends ClientCore
     }
 
     /**
-     * @param $url
-     * @return bool|string
+     * @param string $url
+     * @return string
      * @throws Exception\Exception
      */
-    public function get($url)
+    public function get(string $url): string
     {
         return $this->request($url, self::METHOD_GET);
     }
 
     /**
-     * @param $url
-     * @param null $payload
-     * @return bool|string
+     * @param string $url
+     * @param array<array>|string|null $payload
+     * @return string
      * @throws Exception\Exception
      */
-    public function post($url, $payload = null)
+    public function post(string $url, $payload = null): string
     {
         return $this->request($url, self::METHOD_POST, $payload);
     }
 
     /**
-     * @param $url
-     * @param null $json
-     * @return bool|string
+     * @param string $url
+     * @param string|null $json
+     * @return string
      * @throws Exception\Exception
      */
-    public function postJSON($url, $json = null)
+    public function postJSON(string $url, ?string $json = null): string
     {
         return $this->request($url, self::METHOD_POST, $json, [
             'Content-Type' => 'application/json'
@@ -173,43 +175,46 @@ class Client extends ClientCore
     }
 
     /**
-     * @param $url
-     * @param null $payload
-     * @return bool|string
+     * @param string $url
+     * @param array<array>|string|null $payload
+     * @return string
      * @throws Exception\Exception
      */
-    public function put($url, $payload = null)
+    public function put(string $url, $payload = null): string
     {
         return $this->request($url, self::METHOD_PUT, $payload);
     }
 
     /**
-     * @param $url
-     * @return bool|string
+     * @param string $url
+     * @return string
      * @throws Exception\Exception
      */
-    public function delete($url)
+    public function delete(string $url): string
     {
         return $this->request($url, self::METHOD_DELETE);
     }
 
     /**
-     * @param $url
-     * @param $filename
+     * @param string $url
+     * @param string $filename
      * @param string $type
-     * @param null $payload
+     * @param array<array>|string|null $payload
      * @throws Exception\Exception
      */
-    public function download($url, $filename, $type = self::METHOD_GET, $payload = null): void
+    public function download(string $url, string $filename, string $type = self::METHOD_GET, $payload = null): void
     {
         $data = $this->request($url, $type, $payload);
         $file = fopen($filename, 'wb+');
+        if (!is_resource($file)) {
+            throw new ClientException('download failed');
+        }
         fwrite($file, $data);
         fclose($file);
     }
 
     /**
-     * @return array
+     * @return array<string, string>
      */
     public function getResponseHeaders(): array
     {
@@ -225,7 +230,7 @@ class Client extends ClientCore
     }
 
     /**
-     * @return array
+     * @return array<string, string>
      */
     public function getResponseInfo(): array
     {
@@ -233,10 +238,10 @@ class Client extends ClientCore
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @return string|null
      */
-    public function getResponseHeader($name): ?string
+    public function getResponseHeader(string $name): ?string
     {
         foreach ($this->responseHeaders as $responseHeaderName => $responseHeaderValue) {
             if (strtolower($responseHeaderName) === strtolower($name)) {

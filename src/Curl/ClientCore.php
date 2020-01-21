@@ -13,25 +13,90 @@ abstract class ClientCore
     public const METHOD_PUT = 'PUT';
     public const METHOD_DELETE = 'DELETE';
 
+    /**
+     * @var array<string, string>
+     */
     protected $headers = [];
+
+    /**
+     * @var string
+     */
     protected $userAgent = 'Curl client';
+
+    /**
+     * @var bool
+     */
     protected $verifySSL = true;
+
+    /**
+     * @var bool
+     */
     protected $followLocation = true;
+
+    /**
+     * @var string|false
+     */
     protected $cookiesJar = false;
+
+    /**
+     * @var bool
+     */
     protected $saveSessionCookies = false;
+
+    /**
+     * @var bool
+     */
     protected $useCompression = true;
+
+    /**
+     * @var int
+     */
     protected $connectTimeout = 10;
+
+    /**
+     * @var int
+     */
     protected $timeout = 60;
+
+    /**
+     * @var string|null
+     */
     protected $proxy;
 
+    /**
+     * @var integer|null
+     */
     protected $responseCode;
+
+    /**
+     * @var array<string, string>
+     */
     protected $responseHeaders = [];
+
+    /**
+     * @var array<string, string>
+     */
     protected $responseInfo = [];
 
+    /**
+     * @var bool
+     */
     protected $debug = false;
+
+    /**
+     * @var string|null
+     */
     protected $trace;
 
-    private $ch;
+    /**
+     * @var resource|false
+     */
+    protected $verbose = false;
+
+    /**
+     * @var resource|false
+     */
+    private $ch = false;
 
     private function beforeRequest(): void
     {
@@ -41,19 +106,19 @@ abstract class ClientCore
     }
 
     /**
-     * @param $url
-     * @param $type
-     * @param null $payload
-     * @param array $headers
-     * @return bool|string
+     * @param string $url
+     * @param string $type
+     * @param array<array>|string|null $payload
+     * @param array<string, string> $headers
+     * @return string
      * @throws ClientException
      */
-    protected function request($url, $type, $payload = null, array $headers = [])
+    protected function request(string $url, string $type, $payload = null, array $headers = []): string
     {
         $this->beforeRequest();
 
         $this->ch = curl_init();
-        if (!$this->ch) {
+        if (!is_resource($this->ch)) {
             throw new ClientException('cURL init error');
         }
 
@@ -106,9 +171,9 @@ abstract class ClientCore
         }
 
         if ($this->debug) {
-            $verbose = fopen('php://temp', 'wb+');
+            $this->verbose = fopen('php://temp', 'wb+');
             $curlParams[CURLOPT_VERBOSE] = true;
-            $curlParams[CURLOPT_STDERR] = $verbose;
+            $curlParams[CURLOPT_STDERR] = $this->verbose;
         }
 
         if ($this->proxy) {
@@ -123,25 +188,31 @@ abstract class ClientCore
 
         curl_setopt_array($this->ch, $curlParams);
 
-        $response = curl_exec($this->ch);
+        $response = (string) curl_exec($this->ch);
         $curlInfo = curl_getinfo($this->ch);
 
         if ($this->debug) {
 
-            rewind($verbose);
+            if (!is_resource($this->verbose)) {
+                throw new ClientException('verbose output failed');
+            }
+            rewind($this->verbose);
             $trace = '';
 
             $curlInfoPretty = json_encode($curlInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            if (false === $curlInfoPretty) {
+                throw new ClientException('json_encode failed');
+            }
             $curlInfoPretty = str_replace(['}', '{', '    '], ['', '', '* '], $curlInfoPretty);
             $curlInfoPretty = trim($curlInfoPretty);
 
-            $trace .= stream_get_contents($verbose);
+            $trace .= stream_get_contents($this->verbose);
             $trace .= "* Connection info\n";
             $trace .= $curlInfoPretty;
 
             $this->trace = $trace;
 
-            fclose($verbose);
+            fclose($this->verbose);
         }
 
         $httpCode = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
@@ -158,10 +229,14 @@ abstract class ClientCore
 
         $this->setResponseHeadersFromString(substr($response, 0, $headerSize));
 
-        return substr($response, $headerSize);
+        return (string) substr($response, $headerSize);
     }
 
-    private function getHeadersForCurl($headers): array
+    /**
+     * @param array<string, string> $headers
+     * @return array<string>
+     */
+    private function getHeadersForCurl(array $headers): array
     {
         $result = [];
         foreach ($headers as $headerName => $headerValue) {
@@ -170,7 +245,10 @@ abstract class ClientCore
         return $result;
     }
 
-    private function setResponseHeadersFromString($headers): void
+    /**
+     * @param string $headers
+     */
+    private function setResponseHeadersFromString(string $headers): void
     {
         $this->responseHeaders = [];
 
@@ -191,7 +269,10 @@ abstract class ClientCore
         $this->debug = true;
     }
 
-    public function getTrace()
+    /**
+     * @return string|null
+     */
+    public function getTrace(): ?string
     {
         return $this->trace;
     }
