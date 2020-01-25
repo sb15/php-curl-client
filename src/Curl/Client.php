@@ -204,12 +204,12 @@ class Client extends ClientCore
      */
     public function download(string $url, string $filename, string $type = self::METHOD_GET, $payload = null): void
     {
-        $data = $this->request($url, $type, $payload);
         $file = fopen($filename, 'wb+');
         if (!is_resource($file)) {
-            throw new ClientException('download failed');
+            throw new ClientException('Create destination file failed');
         }
-        fwrite($file, $data);
+
+        $this->request($url, $type, $payload, [], $file);
         fclose($file);
     }
 

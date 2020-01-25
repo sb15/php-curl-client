@@ -111,6 +111,23 @@ class ClientTest extends TestCase
         $this->assertEquals($response['headers']['Upgrade-Insecure-Requests'], $upgradeInsecureRequests);
     }
 
+    public function testResponseHeaders()
+    {
+        $customHeader = 'X-Custom-Header';
+        $payload = 'test';
+
+        $this->client
+            ->setHeader('X-Custom-Header', $payload);
+
+        $response = $this->client->get("https://httpbin.org/response-headers?{$customHeader}={$payload}");
+        $responseHeaders = $this->client->getResponseHeaders();
+
+        $this->assertSame(200, $this->client->getResponseCode());
+        $this->assertNotEmpty($response);
+
+        $this->assertEquals($responseHeaders[$customHeader], $payload);
+    }
+
     public function testDebug()
     {
         $this->client->setDebug();

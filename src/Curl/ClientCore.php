@@ -91,7 +91,12 @@ abstract class ClientCore
     /**
      * @var resource|false
      */
-    protected $verbose = false;
+    protected $verboseStreamResource = false;
+
+    /**
+     * @var resource|false
+     */
+    protected $headerStreamResource = false;
 
     /**
      * @var resource|false
@@ -110,10 +115,11 @@ abstract class ClientCore
      * @param string $type
      * @param array<array>|string|null $payload
      * @param array<string, string> $headers
+     * @param resource|false $outputStreamResource
      * @return string
      * @throws ClientException
      */
-    protected function request(string $url, string $type, $payload = null, array $headers = []): string
+    protected function request(string $url, string $type, $payload = null, array $headers = [], $outputStreamResource = false): string
     {
         $this->beforeRequest();
 
@@ -133,7 +139,6 @@ abstract class ClientCore
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
             CURLOPT_TIMEOUT => $this->timeout,
-            CURLOPT_HEADER => true,
             CURLOPT_USERAGENT => $this->userAgent,
         ];
 
@@ -171,9 +176,9 @@ abstract class ClientCore
         }
 
         if ($this->debug) {
-            $this->verbose = fopen('php://temp', 'wb+');
+            $this->verboseStreamResource = fopen('php://temp', 'wb+');
             $curlParams[CURLOPT_VERBOSE] = true;
-            $curlParams[CURLOPT_STDERR] = $this->verbose;
+            $curlParams[CURLOPT_STDERR] = $this->verboseStreamResource;
         }
 
         if ($this->proxy) {
@@ -186,50 +191,77 @@ abstract class ClientCore
 
         $curlParams[CURLOPT_HTTPHEADER] = $httpHeaders;
 
+        $this->headerStreamResource = fopen('php://temp', 'wb+');
+        $curlParams[CURLOPT_WRITEHEADER] = $this->headerStreamResource;
+
+        if (is_resource($outputStreamResource)) {
+            $curlParams[CURLOPT_FILE] = $outputStreamResource;
+        }
+
         curl_setopt_array($this->ch, $curlParams);
 
         $response = (string) curl_exec($this->ch);
         $curlInfo = curl_getinfo($this->ch);
 
+        if (!is_resource($this->headerStreamResource)) {
+            $this->freeStreamResources();
+            throw new ClientException('header stream resource failed');
+        }
+        rewind($this->headerStreamResource);
+        $responseHeaders = (string) stream_get_contents($this->headerStreamResource);
+
         if ($this->debug) {
 
-            if (!is_resource($this->verbose)) {
-                throw new ClientException('verbose output failed');
+            if (!is_resource($this->verboseStreamResource)) {
+                $this->freeStreamResources();
+                throw new ClientException('verbose stream resource failed');
             }
-            rewind($this->verbose);
+            rewind($this->verboseStreamResource);
             $trace = '';
 
             $curlInfoPretty = json_encode($curlInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             if (false === $curlInfoPretty) {
+                $this->freeStreamResources();
                 throw new ClientException('json_encode failed');
             }
             $curlInfoPretty = str_replace(['}', '{', '    '], ['', '', '* '], $curlInfoPretty);
             $curlInfoPretty = trim($curlInfoPretty);
 
-            $trace .= stream_get_contents($this->verbose);
+            $trace .= stream_get_contents($this->verboseStreamResource);
             $trace .= "* Connection info\n";
             $trace .= $curlInfoPretty;
 
             $this->trace = $trace;
-
-            fclose($this->verbose);
         }
 
         $httpCode = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
-        $headerSize = curl_getinfo($this->ch, CURLINFO_HEADER_SIZE);
         $error = curl_error($this->ch);
-        curl_close($this->ch);
 
         $this->responseCode = $httpCode;
         $this->responseInfo = $curlInfo;
 
         if ($error) {
+            $this->freeStreamResources();
             throw new ClientException('Connection error to '. $url . ' Return code: ' . $httpCode . ' Message: ' . $error);
         }
 
-        $this->setResponseHeadersFromString(substr($response, 0, $headerSize));
+        $this->setResponseHeadersFromString($responseHeaders);
+        $this->freeStreamResources();
 
-        return (string) substr($response, $headerSize);
+        return $response;
+    }
+
+    private function freeStreamResources(): void
+    {
+        if (is_resource($this->headerStreamResource)) {
+            fclose($this->headerStreamResource);
+        }
+        if (is_resource($this->verboseStreamResource)) {
+            fclose($this->verboseStreamResource);
+        }
+        if (is_resource($this->ch)) {
+            curl_close($this->ch);
+        }
     }
 
     /**
