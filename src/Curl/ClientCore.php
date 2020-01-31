@@ -107,6 +107,7 @@ abstract class ClientCore
     {
         $this->trace = null;
         $this->responseCode = null;
+        $this->responseInfo = [];
         $this->responseHeaders = [];
     }
 

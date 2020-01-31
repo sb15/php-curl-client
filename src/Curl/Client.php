@@ -141,6 +141,18 @@ class Client extends ClientCore
     }
 
     /**
+     * @return string|null
+     */
+    public function getResponseUrl(): ?string
+    {
+        if (array_key_exists('url', $this->responseInfo)) {
+            return $this->responseInfo['url'];
+        }
+
+        return null;
+    }
+
+    /**
      * @param string $url
      * @return string
      * @throws Exception\Exception
