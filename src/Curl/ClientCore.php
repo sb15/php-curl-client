@@ -64,6 +64,11 @@ abstract class ClientCore
     protected $proxy;
 
     /**
+     * @var string|null
+     */
+    protected $preProxy;
+
+    /**
      * @var integer|null
      */
     protected $responseCode;
@@ -184,6 +189,10 @@ abstract class ClientCore
 
         if ($this->proxy) {
             $curlParams[CURLOPT_PROXY] = $this->proxy;
+        }
+
+        if ($this->preProxy) {
+            $curlParams[CURLOPT_PRE_PROXY] = $this->preProxy;
         }
 
         if ($this->useCompression) {

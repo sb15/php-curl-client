@@ -111,6 +111,18 @@ class Client extends ClientCore
     }
 
     /**
+     *
+     * @param string $preProxy
+     * @return $this
+     */
+    public function setPreProxy(string $preProxy): self
+    {
+        $this->preProxy = $preProxy;
+
+        return $this;
+    }
+
+    /**
      * @return Client
      */
     public function clearHeaders(): self
