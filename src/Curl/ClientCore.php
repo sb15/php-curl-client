@@ -130,8 +130,14 @@ abstract class ClientCore
         $this->beforeRequest();
 
         $this->ch = curl_init();
-        if (!is_resource($this->ch)) {
-            throw new ClientException('cURL init error');
+        if (version_compare(PHP_VERSION, '8.0.0') >= 0) {
+            if (!$this->ch instanceof \CurlHandle ) {
+                throw new ClientException('cURL init error');
+            }
+        } else {
+            if (!is_resource($this->ch)) {
+                throw new ClientException('cURL init error');
+            }
         }
 
         $clientHeader = $this->headers;
